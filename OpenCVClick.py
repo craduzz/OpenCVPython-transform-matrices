@@ -16,7 +16,7 @@ def get_click(event, x, y, flag, param):
     if event == cv2.EVENT_LBUTTONDOWN:
         mouseX, mouseY = x,y
         clickPointX, clickPointY = mouseX, mouseY
-        print(mouseX," ",mouseY)
+        #print(mouseX," ",mouseY)
         pointSelected = True
         #blank_img[mouseY][mouseX] = 0
         draw_point()
@@ -33,7 +33,7 @@ def rot_around_point():
     #print(angleToCircle)
     rotationArray = np.array([[math.cos(angleToCircle), math.sin(angleToCircle)],
                               [math.sin(angleToCircle) * -1, math.cos(angleToCircle)]])
-    print(clickPointX," ",mouseX)
+    print(rotationArray,"\n","--------------------------------------------------")
     clickPointX = clickPointX - mouseX
     clickPointY = clickPointY - mouseY
 
