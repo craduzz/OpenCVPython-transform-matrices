@@ -6,57 +6,69 @@ import math
 
 
 pointSelected = False
+lineDrawn = False
+calculate_slope = True
 mouseX = 0
 mouseY = 0
 clickPointX = 0
 clickPointY = 0
+lineArray = []
+
+m_slope = 0
 
 def get_click(event, x, y, flag, param):
-    global mouseX, mouseY, pointSelected, clickPointX, clickPointY
+    global mouseX, mouseY, pointSelected, lineArray,lineDrawn
     if event == cv2.EVENT_LBUTTONDOWN:
         mouseX, mouseY = x,y
-        clickPointX, clickPointY = mouseX, mouseY
+
         print(mouseX," ",mouseY)
         pointSelected = True
         #blank_img[mouseY][mouseX] = 0
         draw_point()
 
+        if len(lineArray)<2:
+            point = [mouseX, mouseY]
+            lineArray.append(point)
+
+        if len(lineArray)>=2:
+            lineDrawn = True
+
 def draw_point():
-    for i in range(0,6):
-        for j in range(0,6):
-            blank_img[i-4+mouseY][j-4+mouseX] = 0
+    #print(lineArray)
+    for point in lineArray:
+        for i in range(0,6):
+            for j in range(0,6):
+                blank_img[i-4+point[1]][j-4+point[0]] = 0
     #print(mouseX, " ", mouseY)
 
 
-def rot_around_point():
-    global clickPointX, clickPointY
-    #print(angleToCircle)
-    rotationArray = np.array([[math.cos(angleToCircle), math.sin(angleToCircle)],
-                              [math.sin(angleToCircle) * -1, math.cos(angleToCircle)]])
-    print(clickPointX," ",mouseX)
-    clickPointX = clickPointX - mouseX
-    clickPointY = clickPointY - mouseY
+def reflect_Image(m_slope,x,y,pixelVal):
 
-    newOffset = np.array([randOffsetY - mouseX,randOffsetX - mouseY])
-    #print(newOffset)
-    finalPos = np.matmul(rotationArray,newOffset)
-    finalPos[0] = finalPos[0] + mouseX
-    finalPos[1] = finalPos[1] + mouseY
-    return finalPos
+    #reflected_x = ( ( (1 - math.pow(m_slope,2)) / (1 + math.pow(m_slope,2)) ) * x) + ( ( (2*m_slope) / (1 + math.pow(m_slope,2)) ) * y)
+
+    #reflected_y = ( ( (2*m_slope) / (1 + math.pow(m_slope,2)) ) * x) + ( ( (math.pow(m_slope,2) - 1) / (1 + math.pow(m_slope,2)) ) * y)
+
+    c_val = -(m_slope*lineArray[0][0])+lineArray[0][1]
+    b_val = -1
+    a_val = m_slope
+
+    reflected_x = (( ( math.pow( b_val,2 )-math.pow( a_val,2 ) )*x )-(2*a_val*b_val*y)-(2*a_val*c_val)) / (math.pow(a_val,2)+math.pow(b_val,2))
+
+    reflected_y = ((-2*a_val*b_val*x) + ((math.pow(a_val,2)-math.pow(b_val,2))*y) - (2*b_val*c_val)) / (math.pow(a_val,2)+math.pow(b_val,2))
+
+    blank_img[int(reflected_x)][int(reflected_y)] = pixelVal
+
+    print(m_slope)
 
 
 
 
 def rotate_Image(imageSizeX,imageSizeY,randomOffsetX,randomOffsetY):
+    global m_slope, calculate_slope
     rotationArray = np.array([[math.cos(angle), math.sin(angle)],
                               [math.sin(angle) * -1, math.cos(angle)]])
-
-    if pointSelected:
-        newOff = rot_around_point()
-        #print(newOff)
-        randomOffsetY = newOff[0]
-        randomOffsetX = newOff[1]
     blank_img.fill(255)
+    draw_point()
     if pointSelected:
         draw_point()
     for i in range(0, imageSizeX):
@@ -69,13 +81,16 @@ def rotate_Image(imageSizeX,imageSizeY,randomOffsetX,randomOffsetY):
 
             tmp = np.matmul(rotPoints, rotationArray)
 
-            xval = int(tmp[0]+imgHalfSizeX+randomOffsetX)
-            yval = int(tmp[1]+imgHalfSizeY+randomOffsetY)
+            blank_img[int(tmp[0]+imgHalfSizeX+randomOffsetX), int(tmp[1]+imgHalfSizeY+randomOffsetY)] = m[i][j]
 
-            if xval < 399 and xval > 0:
-                if yval < 399 and yval > 0:
+            pointx = int(tmp[0]+imgHalfSizeX+randomOffsetX)
+            pointy = int(tmp[1]+imgHalfSizeY+randomOffsetY)
 
-                    blank_img[int(tmp[0]+imgHalfSizeX+randomOffsetX), int(tmp[1]+imgHalfSizeY+randomOffsetY)] = m[i][j]
+            if lineDrawn:
+                if calculate_slope:
+                    m_slope = (lineArray[0][1] - lineArray[1][1]) / (lineArray[0][0] - lineArray[1][0])
+                    calculate_slope = False
+                reflect_Image(m_slope,pointx,pointy,m[i][j])
 
 
 m = cv2.imread("letra-M.jpeg",0)
@@ -125,16 +140,17 @@ while True:
     cv2.setMouseCallback('test', get_click)
     cv2.imshow('test',blank_img)
 
-    #print(angle)
-
-
     if pointSelected:
         draw_point()
         angleToCircle = angleToCircle + incrOneDeg
 
-    #print(mouseX," ",mouseY)
-
     rotate_Image(m.shape[0],m.shape[1],randOffsetX,randOffsetY)
+
+
+
+
+
+
     k = cv2.waitKey(100)
     if (k == 27): break
 
