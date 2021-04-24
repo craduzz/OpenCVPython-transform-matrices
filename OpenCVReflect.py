@@ -48,17 +48,20 @@ def reflect_Image(m_slope,x,y,pixelVal):
 
     #reflected_y = ( ( (2*m_slope) / (1 + math.pow(m_slope,2)) ) * x) + ( ( (math.pow(m_slope,2) - 1) / (1 + math.pow(m_slope,2)) ) * y)
 
-    c_val = -(m_slope*lineArray[0][0])+lineArray[0][1]
+    c_val = lineArray[0][1] - (m_slope*lineArray[0][0])
     b_val = -1
     a_val = m_slope
 
-    reflected_x = (( ( math.pow( b_val,2 )-math.pow( a_val,2 ) )*x )-(2*a_val*b_val*y)-(2*a_val*c_val)) / (math.pow(a_val,2)+math.pow(b_val,2))
+    reflected_x = (( ( math.pow( b_val,2 )-math.pow( a_val,2 ) )*y )-(2*a_val*b_val*x)-(2*a_val*c_val)) / (math.pow(a_val,2)+math.pow(b_val,2))
 
-    reflected_y = ((-2*a_val*b_val*x) + ((math.pow(a_val,2)-math.pow(b_val,2))*y) - (2*b_val*c_val)) / (math.pow(a_val,2)+math.pow(b_val,2))
+    reflected_y = ((-2*a_val*b_val*y) + ((math.pow(a_val,2)-math.pow(b_val,2))*x) - (2*b_val*c_val)) / (math.pow(a_val,2)+math.pow(b_val,2))
 
-    blank_img[int(reflected_x)][int(reflected_y)] = pixelVal
+    print(reflected_x," ------------- ",reflected_y)
+    if reflected_x < 399 and reflected_x > 0:
+        if reflected_y < 399 and reflected_y > 0:
+            blank_img[int(reflected_y)][int(reflected_x)] = pixelVal
 
-    print(m_slope)
+    #print(m_slope)
 
 
 
@@ -88,7 +91,7 @@ def rotate_Image(imageSizeX,imageSizeY,randomOffsetX,randomOffsetY):
 
             if lineDrawn:
                 if calculate_slope:
-                    m_slope = (lineArray[0][1] - lineArray[1][1]) / (lineArray[0][0] - lineArray[1][0])
+                    m_slope = (lineArray[1][1] - lineArray[0][1]) / (lineArray[1][0] - lineArray[0][0])
                     calculate_slope = False
                 reflect_Image(m_slope,pointx,pointy,m[i][j])
 
